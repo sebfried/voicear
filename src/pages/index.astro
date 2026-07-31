@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.openai.com; img-src 'self'; media-src 'self' blob:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; manifest-src 'self'" />
+    <link rel="stylesheet" href="/global.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <title>Voice</title>
+  </head>
+  <body>
+    <header>
+      <time id="date"></time>
+      <time id="clock"></time>
+      <span id="status" role="status">VOICE: STARTING</span>
+    </header>
+    <p id="notice" role="alert"></p>
+
+    <main id="transcript" role="log" aria-live="polite" aria-label="Gesprächsverlauf"></main>
+
+    <section id="start-screen" aria-label="Voice starten">
+      <button id="start" type="button">[ START VOICE ]</button>
+    </section>
+    <nav class="bottom" aria-label="App-Steuerung">
+      <button id="chats-button" class="quiet" type="button" aria-controls="sidebar" aria-expanded="false">[ CHATS ]</button>
+      <button id="current" class="quiet hidden" type="button">[ CURRENT VOICE ]</button>
+      <button id="fullscreen" class="quiet hidden" type="button">[ FULLSCREEN ]</button>
+    </nav>
+
+    <aside id="sidebar" aria-hidden="true" aria-label="Chat-Verlauf">
+      <div class="sidebar-head">
+        <h1>CHATS</h1>
+        <button id="close-sidebar" class="quiet" type="button" aria-label="Chat-Verlauf schließen">[ CLOSE ]</button>
+      </div>
+      <button id="new-chat" type="button">[ NEW CHAT ]</button>
+      <ol id="chat-list"></ol>
+      <div class="sidebar-actions">
+        <button id="settings-button" class="quiet" type="button">[ KEYS + SETTINGS ]</button>
+        <button id="export-button" class="quiet" type="button">[ EXPORT HISTORY ]</button>
+      </div>
+    </aside>
+
+    <dialog id="settings-dialog">
+      <form id="settings-form" method="dialog" autocomplete="off">
+        <h1>KEYS + SETTINGS</h1>
+        <p class="warning">FRONTEND-ONLY BYOK: Der OpenAI Platform API Key wird dauerhaft im localStorage dieses Browsers gespeichert und ist für JavaScript derselben Origin auslesbar. Er wird nicht in Chats, IndexedDB oder Service Worker gespeichert. „Hey Jarvis“ wird lokal erkannt; erst danach startet OpenAI Realtime.</p>
+        <label>
+          OPENAI PLATFORM API KEY
+          <input id="openai-key" name="openai" type="password" spellcheck="false" required minlength="20" placeholder="sk-proj-… oder ek_…" />
+        </label>
+        <label>
+          VOICE MODEL
+          <select id="model" name="model">
+            <option value="gpt-realtime-2.1-mini">GPT-REALTIME-2.1-MINI — EFFICIENT</option>
+            <option value="gpt-realtime-2.1">GPT-REALTIME-2.1 — QUALITY</option>
+          </select>
+        </label>
+        <p class="warning">WAKE WORD: openWakeWord „Hey Jarvis“, lokal im Browser. Vortrainiertes Modell: CC BY-NC-SA 4.0.</p>
+        <p id="settings-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="save-settings" value="save" type="submit">[ SAVE ]</button>
+          <button id="clear-keys" class="quiet" type="button">[ CLEAR KEYS ]</button>
+          <button id="cancel-settings" class="quiet" type="button">[ CANCEL ]</button>
+        </div>
+      </form>
+    </dialog>
+
+    <audio id="agent-audio" autoplay></audio>
+    <script src="../scripts/app.ts"></script>
+  </body>
+</html>

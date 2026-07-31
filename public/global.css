@@ -1,0 +1,187 @@
+:root {
+  color-scheme: dark;
+  --background: #000;
+  --text: #39ff14;
+  --secondary: rgba(57, 255, 20, 0.72);
+  --muted: rgba(57, 255, 20, 0.46);
+  --font-scale: 1;
+  --chrome-font: clamp(15px, 1.25vw, 21px);
+  --footer-height: calc(3.4rem + env(safe-area-inset-bottom));
+  font-family: "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;
+  background: var(--background);
+  color: var(--text);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--background);
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: max(18px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  font-size: calc(clamp(28px, 2.8vw, 42px) * var(--font-scale));
+  line-height: 1.45;
+}
+
+button, input, select { font: inherit; }
+
+button, input, select, dialog {
+  color: var(--text);
+  background: #000;
+  border: 1px solid var(--muted);
+}
+
+button { cursor: pointer; padding: .22em .42em; }
+button:hover, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+button:disabled { color: var(--muted); cursor: wait; }
+
+header {
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  padding-bottom: .8rem;
+  font-size: var(--chrome-font);
+  color: var(--secondary);
+  white-space: nowrap;
+}
+
+#clock { text-align: center; }
+#status { text-align: right; }
+
+#transcript {
+  min-height: 0;
+  overflow: auto;
+  padding: .4rem 0 calc(var(--footer-height) + 1rem);
+  scrollbar-color: var(--muted) transparent;
+  overscroll-behavior: contain;
+}
+
+.message { margin: 0 0 1.15em; }
+.speaker {
+  display: block;
+  margin-bottom: .12em;
+  color: var(--secondary);
+  font-size: .62em;
+  letter-spacing: .08em;
+}
+.message p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message.in_progress p::after { content: "_"; color: var(--secondary); }
+.word-reveal { animation: matrix-in 840ms steps(8, end) both; animation-delay: calc(var(--reveal-index) * 180ms); }
+.message-fade { animation: message-fade 500ms ease-out both; }
+
+#start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  background: #000;
+}
+
+#start-screen.started { display: none; }
+#start { border: 0; font-size: clamp(30px, 4vw, 58px); }
+#notice {
+  position: relative;
+  z-index: 12;
+  margin: 0;
+  padding: .3rem 0 .65rem;
+  color: var(--secondary);
+  font-size: .55em;
+  text-align: center;
+  pointer-events: none;
+}
+#notice:empty { display: none; }
+#settings-error { min-height: 1.5em; max-width: 58rem; margin: 0; color: var(--secondary); font-size: .55em; text-align: center; }
+
+.bottom {
+  position: fixed;
+  z-index: 11;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: var(--footer-height);
+  padding: .65rem max(22px, env(safe-area-inset-right)) max(.65rem, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  background: #000;
+  border-top: 1px solid var(--muted);
+  box-shadow: 0 -1rem 2rem #000;
+  pointer-events: none;
+}
+.bottom button { pointer-events: auto; }
+.bottom #chats-button { grid-column: 1; justify-self: start; }
+.bottom #current { grid-column: 2; justify-self: center; }
+.bottom #fullscreen { grid-column: 3; justify-self: end; }
+.bottom .quiet { font-size: var(--chrome-font); }
+.quiet { border: 0; color: var(--muted); font-size: .48em; }
+.hidden { display: none !important; }
+
+#sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  width: min(34rem, 88vw);
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 1rem;
+  padding: max(20px, env(safe-area-inset-top)) 24px max(20px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: #000;
+  border-right: 1px solid var(--muted);
+  transform: translateX(-102%);
+  visibility: hidden;
+}
+
+#sidebar.open { transform: translateX(0); visibility: visible; }
+.sidebar-head { display: flex; justify-content: space-between; align-items: baseline; }
+h1 { margin: 0; font-size: .75em; letter-spacing: .08em; }
+#new-chat { justify-self: start; font-size: .62em; }
+#chat-list { margin: 0; padding: 0; overflow: auto; list-style: none; }
+#chat-list li { display: grid; grid-template-columns: 1fr auto; gap: .4rem; padding: .45rem 0; border-bottom: 1px solid rgba(57, 255, 20, .18); }
+.chat-select { border: 0; padding: 0; text-align: left; font-size: .58em; }
+.chat-select[aria-current="true"] { color: #fff; }
+.chat-meta { display: block; color: var(--muted); font-size: .68em; }
+.delete-chat { border: 0; align-self: start; color: var(--muted); font-size: .44em; }
+.sidebar-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+dialog {
+  width: min(58rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  padding: clamp(20px, 4vw, 48px);
+  overflow: auto;
+}
+dialog::backdrop { background: rgba(0, 0, 0, .92); }
+dialog form { display: grid; gap: 1rem; }
+dialog label { display: grid; gap: .35rem; color: var(--secondary); font-size: .55em; }
+dialog input, dialog select { width: 100%; padding: .55em; font-size: 1.15em; }
+.warning { margin: 0; color: var(--secondary); font-size: .47em; line-height: 1.55; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.dialog-actions button { font-size: .58em; }
+
+@media (prefers-reduced-motion: no-preference) {
+  #sidebar { transition: transform 120ms linear, visibility 120ms linear; }
+  @keyframes matrix-in {
+    from { opacity: 0; color: #fff; }
+    55% { opacity: 1; color: #fff; text-shadow: 0 0 .45em var(--text); }
+    to { opacity: 1; color: inherit; text-shadow: none; }
+  }
+  @keyframes message-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+
+@media (max-width: 680px) {
+  body { padding-inline: 14px; }
+  header { grid-template-columns: 1fr 1fr; gap: .4rem; }
+  #clock { display: none; }
+}

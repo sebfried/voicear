@@ -1,0 +1,23 @@
+{
+  "name": "voicear",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.18.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-strip-types src/lib/state.test.ts",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@openai/agents": "0.14.1",
+    "astro": "7.1.6",
+    "onnxruntime-web": "1.27.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "typescript": "7.0.2"
+  }
+}
