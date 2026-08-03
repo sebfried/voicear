@@ -71,7 +71,7 @@ export class WakeWordDetector {
         }
       });
       await Promise.all([this.load(), resume]);
-      if (session !== this.session || this.context !== context) throw new Error("Lokaler Audiostart wurde unterbrochen. Tippe erneut auf START VOICE.");
+      if (session !== this.session || this.context !== context) throw new Error("Lokaler Audiostart wurde unterbrochen. Tippe einmal auf die Seite.");
       await context.audioWorklet.addModule("/wake-audio-worklet.js");
       this.source = context.createMediaStreamSource(this.stream);
       this.worklet = new AudioWorkletNode(context, "wake-audio-processor", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
@@ -82,7 +82,7 @@ export class WakeWordDetector {
       if (context.state !== "running") throw new Error(`Lokales Audio konnte nicht gestartet werden (${context.state}). Tippe erneut auf START VOICE.`);
       this.running = true;
       await new Promise<void>((resolve, reject) => {
-        const timeout = window.setTimeout(() => reject(new Error("Das iPhone liefert keine verarbeitbaren Mikrofonframes. Tippe erneut auf START VOICE.")), 10_000);
+        const timeout = window.setTimeout(() => reject(new Error("Das iPhone liefert keine verarbeitbaren Mikrofonframes. Tippe einmal auf die Seite.")), 10_000);
         this.firstFrame = () => {
           window.clearTimeout(timeout);
           resolve();

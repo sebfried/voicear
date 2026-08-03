@@ -94,19 +94,6 @@ header {
 .word-reveal { animation: matrix-in 840ms steps(8, end) both; animation-delay: calc(var(--reveal-index) * 180ms); }
 .message-fade { animation: message-fade 500ms ease-out both; }
 
-#start-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 1rem;
-  background: #000;
-}
-
-#start-screen.started { display: none; }
-#start { border: 0; font-size: clamp(30px, 4vw, 58px); }
 #notice {
   position: relative;
   z-index: 12;

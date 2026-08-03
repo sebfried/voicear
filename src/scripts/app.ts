@@ -4,7 +4,7 @@ import { agentConnectionRevision, boundedAgentText, firstAttentionTransition, is
 import { getHermesRun, stopHermesRun, submitHermesRun, testHermesConnection, type HermesRunSnapshot } from "../lib/hermes";
 import { historyToMessages, messagesToHistory, withoutHistoryItems } from "../lib/realtime-history";
 import { chatTitle, findChats, newChat, type Chat } from "../lib/state";
-import { bindHermesCredential, bindOpenClawCredential, clearCredentials, credentialsSchema, getAgentCredential, getAgentTask, getChat, listAgentConnections, listAgentTasks, listChats, loadActiveChatId, loadCredentials, loadSettings, putAgentCredential, putAgentTask, putChat, removeAgentConnection, removeChat, saveActiveChatId, saveAgentConnection, saveCredentials, saveSettings, updateOpenClawCredential, type AgentCredential, type Credentials, type OpenClawIdentity } from "../lib/storage";
+import { bindHermesCredential, bindOpenClawCredential, clearCredentials, credentialsSchema, getAgentCredential, getAgentTask, getChat, listAgentConnections, listAgentTasks, listChats, loadCredentials, loadSettings, putAgentCredential, putAgentTask, putChat, removeAgentConnection, removeChat, saveActiveChatId, saveAgentConnection, saveCredentials, saveSettings, updateOpenClawCredential, type AgentCredential, type Credentials, type OpenClawIdentity } from "../lib/storage";
 import { compareTabClaims, nextTabClaim, parseTabClaim, type TabClaim } from "../lib/tab-ownership";
 import { WakeWordDetector } from "../lib/wake-word";
 
@@ -31,8 +31,6 @@ const clockElement = $<HTMLTimeElement>("clock");
 const statusElement = $("status");
 const transcriptElement = $("transcript");
 const currentButton = $<HTMLButtonElement>("current");
-const startScreen = $("start-screen");
-const startButton = $<HTMLButtonElement>("start");
 const noticeElement = $("notice");
 const sidebar = $("sidebar");
 const chatsButton = $<HTMLButtonElement>("chats-button");
@@ -1053,7 +1051,10 @@ const acquireWakeLock = async () => {
 
 const updateFullscreenButton = () => {
   const installedFullscreen = matchMedia("(display-mode: fullscreen)").matches;
-  fullscreenButton.classList.toggle("hidden", Boolean(document.fullscreenElement) || installedFullscreen || !document.fullscreenEnabled);
+  const active = Boolean(document.fullscreenElement);
+  fullscreenButton.classList.toggle("hidden", installedFullscreen || !document.fullscreenEnabled);
+  fullscreenButton.textContent = active ? "[ EXIT FULL ]" : "[ FULLSCREEN ]";
+  fullscreenButton.setAttribute("aria-label", active ? "Fullscreen beenden" : "Fullscreen starten");
 };
 
 const releaseWakeWorker = async () => {
@@ -1076,13 +1077,6 @@ const prepareWakeWorker = async () => {
     }
   );
   wakeDetector = detector;
-  try {
-    await detector.load();
-  } catch (error) {
-    if (wakeDetector === detector) wakeDetector = null;
-    await detector.destroy();
-    throw error;
-  }
 };
 
 const stopWake = async () => {
@@ -1557,10 +1551,10 @@ settingsForm.addEventListener("submit", async (event) => {
   saveCredentials(credentials);
   saveSettings(settings);
   try {
-    await prepareWakeWorker();
     settingsDialog.close();
     setNotice();
-    startButton.textContent = "[ START VOICE ]";
+    started = true;
+    if (await claimAudioOwnership()) await startWake();
   } catch (error) {
     settingsError.textContent = errorMessage(error, "Hey Jarvis konnte nicht vorbereitet werden.");
   } finally {
@@ -1637,17 +1631,6 @@ agentForm.addEventListener("submit", async (event) => {
   }
 });
 
-startButton.addEventListener("click", async () => {
-  if (!credentials) { openSettings(); return; }
-  if (!await claimAudioOwnership()) return;
-  started = true;
-  document.documentElement.requestFullscreen?.().catch(() => {});
-  void navigator.storage?.persist?.();
-  startScreen.classList.add("started");
-  await startWake();
-  await acquireWakeLock();
-});
-
 chatsButton.addEventListener("click", () => { sidebar.classList.contains("open") ? closeSidebar() : void openSidebar(); });
 $("close-sidebar").addEventListener("click", closeSidebar);
 $("new-chat").addEventListener("click", () => { void createAndSelectChat(Boolean(session)); });
@@ -1665,15 +1648,21 @@ $("clear-keys").addEventListener("click", async () => {
   clearCredentials();
   credentials = null;
   started = false;
-  startScreen.classList.remove("started");
-  startButton.textContent = "[ CONFIGURE KEYS ]";
   openaiInput.value = "";
   await releaseWakeWorker();
   setStatus(navigator.onLine ? "READY" : "OFFLINE");
   settingsError.textContent = "SCHLÜSSEL FÜR DIESEN TAB GELÖSCHT.";
 });
 currentButton.addEventListener("click", showCurrent);
-fullscreenButton.addEventListener("click", () => { void document.documentElement.requestFullscreen?.(); });
+fullscreenButton.addEventListener("click", () => {
+  void (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.());
+});
+const resumeWakeFromGesture = () => {
+  if (!credentials || !started || session || wakeSubscribed || wakeStarting || settingsDialog.open) return;
+  void claimAudioOwnership().then((owner) => { if (owner) return startWake(); });
+};
+document.addEventListener("pointerdown", resumeWakeFromGesture, { capture: true, passive: true });
+document.addEventListener("keydown", resumeWakeFromGesture, { capture: true });
 
 agentList.addEventListener("click", async (event) => {
   const target = event.target as HTMLElement;
@@ -1803,7 +1792,7 @@ window.addEventListener("storage", (event) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") {
     window.clearTimeout(agentPollTimer);
-    void suspendAudioOwnership();
+    if (session || realtimeStarting) void suspendAudioOwnership();
     return;
   }
   void activateThisTab();
@@ -1830,20 +1819,19 @@ const initialize = async () => {
   updateClock();
   window.setInterval(updateClock, 15_000);
   setFontScale(settings.fontScale);
-  const chats = await listChats();
-  const preferred = loadActiveChatId();
-  activeChat = chats.find(({ id }) => id === preferred) ?? chats[0] ?? newChat();
-  if (!chats.some(({ id }) => id === activeChat.id)) await putChat(activeChat);
+  activeChat = newChat();
   saveActiveChatId(activeChat.id);
   renderTranscript();
   updateFullscreenButton();
   setStatus(navigator.onLine ? "READY" : "OFFLINE");
   if (!credentials) {
-    startButton.textContent = "[ CONFIGURE KEYS ]";
     openSettings();
     if (credentialImportError) settingsError.textContent = credentialImportError;
   } else {
-    void prepareWakeWorker().catch((error) => setNotice(errorMessage(error, "Wake Word nicht vorbereitet.")));
+    started = true;
+    void navigator.storage?.persist?.();
+    void startWake();
+    void acquireWakeLock();
   }
   void initializeAgentChannels().catch((error) => {
     console.warn("Local agents", errorMessage(error, "Initialisierung fehlgeschlagen."));
@@ -1854,22 +1842,13 @@ const initialize = async () => {
 const registerServiceWorker = async () => {
   if (!("serviceWorker" in navigator)) return;
   try {
-    if (!import.meta.env.PROD) {
-      await (await navigator.serviceWorker.getRegistration("/"))?.unregister();
-      if ("caches" in window) {
-        const names = await caches.keys();
-        await Promise.all(names.filter((name) => name.startsWith("voice-local-")).map((name) => caches.delete(name)));
-      }
-      return;
+    await (await navigator.serviceWorker.getRegistration("/"))?.unregister();
+    if ("caches" in window) {
+      const names = await caches.keys();
+      await Promise.all(names.filter((name) => name.startsWith("voice-local-")).map((name) => caches.delete(name)));
     }
-    const registration = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
-    await registration.update();
-    await Promise.race([
-      navigator.serviceWorker.ready,
-      new Promise<void>((resolve) => window.setTimeout(resolve, 5_000))
-    ]);
   } catch (error) {
-    console.warn("Offline-Cache", error);
+    console.warn("Legacy Offline-Cache", error);
   }
 };
 
