@@ -1,4 +1,4 @@
-const CACHE = "voice-local-v3";
+const CACHE = "voice-local-v6";
 const SHELL = [
   "/",
   "/global.css",
@@ -30,16 +30,19 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (request.mode === "navigate") {
+    if (url.pathname !== "/") return;
     event.respondWith(fetch(request).then(async (response) => {
-      await (await caches.open(CACHE)).put("/", response.clone());
+      if (response.ok) await (await caches.open(CACHE)).put("/", response.clone());
       return response;
     }).catch(() => caches.match("/")));
     return;
   }
+  if (!SHELL.includes(url.pathname) && !url.pathname.startsWith("/_astro/")) return;
   event.respondWith(fetch(request).then(async (response) => {
-    await (await caches.open(CACHE)).put(request, response.clone());
+    if (response.ok) await (await caches.open(CACHE)).put(request, response.clone());
     return response;
   }).catch(() => caches.match(request)));
 });

@@ -15,7 +15,17 @@ Alternativ kann der Key einmalig über `https://HOST:4321/?key=OPENAI_KEY` impor
 
 Ein ChatGPT-Abo ist keine API-Freigabe. OpenAI bietet für Realtime im Browser derzeit keinen allgemeinen ChatGPT-OAuth-Flow; ein normaler Platform-Key im Frontend ist auslesbar. Diese BYOK-Variante ist deshalb für persönliche Geräte gedacht. Für eine öffentlich geteilte Installation ist ein kleiner Server-Endpunkt für kurzlebige `ek_`-Tokens erforderlich.
 
-Sprachbefehle: neuer Chat, Chat wechseln/auflisten/anzeigen, Schrift größer/kleiner oder Prozentwert, `Pause Voice`, `Stop Voice`, `Current Voice`.
+Sprachbefehle: neuer Chat, Chat wechseln/auflisten/anzeigen, Schrift größer/kleiner oder Prozentwert, `Pause Voice`, `Stop Voice`, `Current Voice` sowie lokale Agents einrichten/testen, Aufgaben delegieren und die Agent Inbox lesen.
+
+## Optionale lokale Agents
+
+Unter `[ CHATS ] → [ LOCAL AGENTS ]` können mehrere Hermes- oder OpenClaw-Verbindungen gespeichert werden. Voice funktioniert ohne sie unverändert. Profile liegen im `localStorage`; Agent-Zugänge, die nicht exportierbare OpenClaw-Geräteidentität und Inbox-Aufträge liegen in IndexedDB. Nach Reload, Netzwechsel oder iOS-Suspend baut die App den Socket neu auf und gleicht offene Aufträge ab – ein Browser kann keinen laufenden Socket selbst dauerhaft speichern.
+
+- Hermes: `https://`-Endpoint, `API_SERVER_KEY` und die exakte Voice-Origin in `API_SERVER_CORS_ORIGINS`.
+- OpenClaw: `wss://`-Gateway, optionaler Agent-Name und bei der Ersteinrichtung ein Gateway-Token; Geräte-Pairing kann bestätigt werden müssen. Der offizielle Browser-Client ist exakt auf die angezeigte Beta-Version fixiert.
+- Tailscale Serve ist eine optionale private Netzwerkstrecke. Tailscale-Anmeldung erfolgt im Tailscale-Client des Geräts; Voice speichert keinen Tailscale-Key und führt keinen Tailscale-OAuth-Flow aus. Ein direkt erreichbarer, korrekt abgesicherter HTTPS/WSS-Endpoint funktioniert ebenfalls.
+
+Neue Agent-Ergebnisse bleiben in der separaten Inbox. Nur ein Ergebnis, das live während einer bereits aktiven Voice-Session eintrifft, darf einmal isoliert und ohne Tools zusammengefasst werden. Reconciliation, App-Start und Voice-Idle spielen nichts später nach. Architektur, Sicherheitsgrenzen und Alternativen: [`docs/channels.md`](docs/channels.md), [`docs/messages.md`](docs/messages.md), [`docs/options.md`](docs/options.md).
 
 Die unveränderten openWakeWord-v0.5.1-Modellartefakte werden lokal aus `public/openwakeword/models` ausgeliefert und vom Service Worker gecacht. Der openWakeWord-Code ist Apache-2.0; die mitgelieferten vortrainierten Modelle einschließlich „Hey Jarvis“ stehen unter CC BY-NC-SA 4.0. Details und Attribution: `public/openwakeword/NOTICE.md`.
 

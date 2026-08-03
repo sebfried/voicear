@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
     <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.openai.com; img-src 'self'; media-src 'self' blob:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; manifest-src 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*; img-src 'self'; media-src 'self' blob:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; manifest-src 'self'" />
     <link rel="stylesheet" href="/global.css" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
@@ -16,7 +16,14 @@
     <header>
       <time id="date"></time>
       <time id="clock"></time>
-      <span id="status" role="status">VOICE: STARTING</span>
+      <div id="header-actions">
+        <span id="status" role="status">VOICE: STARTING</span>
+        <button id="inbox-button" class="quiet hidden" type="button" aria-haspopup="dialog" aria-controls="inbox-dialog" aria-label="Agent-Inbox öffnen">
+          <span aria-hidden="true">[ ▣ ]</span>
+          <span id="inbox-dot" class="hidden" aria-hidden="true"></span>
+        </button>
+        <span id="inbox-status" class="sr-only" role="status"></span>
+      </div>
     </header>
     <p id="notice" role="alert"></p>
 
@@ -39,10 +46,69 @@
       <button id="new-chat" type="button">[ NEW CHAT ]</button>
       <ol id="chat-list"></ol>
       <div class="sidebar-actions">
+        <button id="agents-button" class="quiet" type="button">[ LOCAL AGENTS ]</button>
         <button id="settings-button" class="quiet" type="button">[ KEYS + SETTINGS ]</button>
         <button id="export-button" class="quiet" type="button">[ EXPORT HISTORY ]</button>
       </div>
     </aside>
+
+    <dialog id="inbox-dialog" aria-labelledby="inbox-title">
+      <div class="dialog-shell">
+        <div class="dialog-head">
+          <h1 id="inbox-title">AGENT INBOX</h1>
+          <button id="close-inbox" class="quiet" type="button" aria-label="Agent-Inbox schließen">[ CLOSE ]</button>
+        </div>
+        <p id="inbox-empty" class="warning">NO AGENT MESSAGES.</p>
+        <ol id="inbox-list"></ol>
+      </div>
+    </dialog>
+
+    <dialog id="agents-dialog" aria-labelledby="agents-title">
+      <div class="dialog-shell">
+        <div class="dialog-head">
+          <h1 id="agents-title">LOCAL AGENTS</h1>
+          <button id="close-agents" class="quiet" type="button" aria-label="Agent-Einstellungen schließen">[ CLOSE ]</button>
+        </div>
+        <p class="warning">OPTIONAL: Voice funktioniert vollständig ohne lokalen Agent. Verbindungen und Aufträge bleiben in diesem Browser gespeichert. Agent-Schlüssel sind BYOK und für JavaScript derselben Origin auslesbar. Schlüssel nur einfügen – niemals diktieren.</p>
+        <ol id="agent-list"></ol>
+        <form id="agent-form" autocomplete="off">
+          <input id="agent-id" type="hidden" />
+          <label>
+            TYPE
+            <select id="agent-kind" required>
+              <option value="hermes">HERMES — STABLE RUNS API</option>
+              <option value="openclaw">OPENCLAW — OFFICIAL WS BETA</option>
+            </select>
+          </label>
+          <label>
+            NAME
+            <input id="agent-label" type="text" required maxlength="60" placeholder="WORKSTATION" />
+          </label>
+          <label>
+            ENDPOINT
+            <input id="agent-endpoint" type="url" required spellcheck="false" placeholder="https://agent.example.ts.net" />
+          </label>
+          <label id="agent-target-row" class="hidden">
+            OPENCLAW AGENT ID
+            <input id="agent-target" type="text" maxlength="80" spellcheck="false" placeholder="main" />
+          </label>
+          <label>
+            <span id="agent-secret-label">HERMES API KEY</span>
+            <input id="agent-secret" type="password" spellcheck="false" autocomplete="new-password" maxlength="8192" placeholder="Leer lassen, um den gespeicherten Schlüssel zu behalten" />
+          </label>
+          <label class="check-label">
+            <input id="agent-default" type="checkbox" />
+            DEFAULT FOR VOICE
+          </label>
+          <p id="agent-setup-help" class="warning"></p>
+          <p id="agent-error" role="alert"></p>
+          <div class="dialog-actions">
+            <button id="save-agent" type="submit">[ SAVE + CONNECT ]</button>
+            <button id="reset-agent" class="quiet" type="button">[ NEW ]</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
 
     <dialog id="settings-dialog">
       <form id="settings-form" method="dialog" autocomplete="off">

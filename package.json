@@ -7,11 +7,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types src/lib/state.test.ts",
+    "test": "node --experimental-strip-types src/lib/state.test.ts && node --experimental-strip-types src/lib/tab-ownership.test.ts && node --experimental-strip-types src/lib/agent-state.test.ts && node --experimental-strip-types src/lib/hermes.test.ts && node --experimental-strip-types src/lib/openclaw.test.ts",
     "preview": "astro preview"
   },
   "dependencies": {
     "@openai/agents": "0.14.1",
+    "@openclaw/gateway-client": "2026.7.2-beta.6",
     "astro": "7.1.6",
     "onnxruntime-web": "1.27.0",
     "zod": "4.4.3"

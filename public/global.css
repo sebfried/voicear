@@ -23,10 +23,11 @@ html, body {
 }
 
 body {
+  height: 100dvh;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   padding: max(18px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
-  font-size: calc(clamp(28px, 2.8vw, 42px) * var(--font-scale));
+  font-size: clamp(28px, 2.8vw, 42px);
   line-height: 1.45;
 }
 
@@ -38,9 +39,9 @@ button, input, select, dialog {
   border: 1px solid var(--muted);
 }
 
-button { cursor: pointer; padding: .22em .42em; }
+button { cursor: pointer; padding: .22em .42em; touch-action: manipulation; }
 button:hover, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-button:disabled { color: var(--muted); cursor: wait; }
+button:disabled, button[aria-disabled="true"] { color: var(--muted); cursor: wait; }
 
 header {
   z-index: 2;
@@ -56,11 +57,26 @@ header {
 
 #clock { text-align: center; }
 #status { text-align: right; }
+#date, #header-actions { min-width: 0; }
+#header-actions { display: flex; justify-content: flex-end; align-items: center; gap: .55rem; }
+#inbox-button { position: relative; min-width: 44px; min-height: 44px; padding: 0 .2rem; font-size: var(--chrome-font); }
+#inbox-dot {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #000;
+  border-radius: 50%;
+  background: #ff9f0a;
+  box-shadow: 0 0 .45rem #ff9f0a;
+}
 
 #transcript {
   min-height: 0;
   overflow: auto;
   padding: .4rem 0 calc(var(--footer-height) + 1rem);
+  font-size: calc(clamp(28px, 2.8vw, 42px) * var(--font-scale));
   scrollbar-color: var(--muted) transparent;
   overscroll-behavior: contain;
 }
@@ -127,6 +143,7 @@ header {
 .bottom .quiet { font-size: var(--chrome-font); }
 .quiet { border: 0; color: var(--muted); font-size: .48em; }
 .hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 #sidebar {
   position: fixed;
@@ -158,17 +175,35 @@ h1 { margin: 0; font-size: .75em; letter-spacing: .08em; }
 
 dialog {
   width: min(58rem, calc(100vw - 2rem));
-  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
   padding: clamp(20px, 4vw, 48px);
   overflow: auto;
+  overscroll-behavior: contain;
 }
 dialog::backdrop { background: rgba(0, 0, 0, .92); }
 dialog form { display: grid; gap: 1rem; }
 dialog label { display: grid; gap: .35rem; color: var(--secondary); font-size: .55em; }
 dialog input, dialog select { width: 100%; padding: .55em; font-size: 1.15em; }
+.dialog-shell { display: grid; gap: 1rem; }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.dialog-head .quiet { min-width: 44px; min-height: 44px; }
+.check-label { grid-template-columns: auto 1fr; align-items: center; }
+.check-label input { width: 1.1em; height: 1.1em; }
 .warning { margin: 0; color: var(--secondary); font-size: .47em; line-height: 1.55; }
 .dialog-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .dialog-actions button { font-size: .58em; }
+#agent-error { min-height: 1.5em; margin: 0; color: #ff9f0a; font-size: .5em; }
+#agent-list, #inbox-list { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+.agent-card, .inbox-card { display: grid; gap: .45rem; padding: .75rem; border: 1px solid rgba(57, 255, 20, .3); font-size: .52em; }
+.agent-card[data-state="error"] { border-color: #ff9f0a; }
+.agent-card-head, .inbox-card-head { display: flex; justify-content: space-between; gap: .75rem; }
+.agent-card-head > *, .inbox-card-head > * { min-width: 0; overflow-wrap: anywhere; }
+.agent-card-actions, .inbox-card-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
+.agent-card button, .inbox-card button { min-height: 44px; font-size: .85em; }
+.inbox-pager button { min-height: 44px; font-size: .48em; }
+.agent-meta { color: var(--muted); font-size: .82em; overflow-wrap: anywhere; }
+.agent-output { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.unread { border-color: var(--text); box-shadow: inset 3px 0 var(--text); }
 
 @media (prefers-reduced-motion: no-preference) {
   #sidebar { transition: transform 120ms linear, visibility 120ms linear; }
@@ -181,7 +216,31 @@ dialog input, dialog select { width: 100%; padding: .55em; font-size: 1.15em; }
 }
 
 @media (max-width: 680px) {
-  body { padding-inline: 14px; }
-  header { grid-template-columns: 1fr 1fr; gap: .4rem; }
+  :root { --chrome-font: clamp(12px, 3.4vw, 14px); }
+  button { min-height: 44px; }
+  .delete-chat { min-width: 44px; }
+  body { padding-inline: max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-right)); }
+  #transcript { font-size: calc(clamp(23px, 6vw, 28px) * var(--font-scale)); }
+  header { grid-template-columns: minmax(0, 1fr) auto; gap: .4rem; }
+  #header-actions { gap: .25rem; }
   #clock { display: none; }
+  #date, #status { overflow: hidden; text-overflow: ellipsis; }
+  .bottom { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-inline: max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-right)); }
+  .bottom button { min-width: 0; min-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #sidebar { width: 100%; padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right)); border-right: 0; }
+  dialog {
+    inset: max(.5rem, env(safe-area-inset-top)) max(.5rem, env(safe-area-inset-right)) max(.5rem, env(safe-area-inset-bottom)) max(.5rem, env(safe-area-inset-left));
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - max(.5rem, env(safe-area-inset-top)) - max(.5rem, env(safe-area-inset-bottom)));
+    margin: 0;
+    padding: 16px;
+  }
+  dialog input, dialog select { min-height: 44px; font-size: max(16px, 1.15em); }
+}
+
+@media (pointer: coarse) {
+  :root { --footer-height: calc(3.4rem + max(.65rem, env(safe-area-inset-bottom))); }
+  button { min-height: 44px; }
+  .delete-chat { min-width: 44px; }
 }
