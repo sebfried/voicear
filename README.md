@@ -17,6 +17,8 @@ Ein ChatGPT-Abo ist keine API-Freigabe. OpenAI bietet für Realtime im Browser d
 
 Sprachbefehle: neuer Chat, Chat wechseln/auflisten/anzeigen, Schrift größer/kleiner oder Prozentwert, `Pause Voice`, `Stop Voice`, `Current Voice` sowie lokale Agents einrichten/testen, Aufgaben delegieren und die Agent Inbox lesen.
 
+Die Kamera startet aus Datenschutzgründen ausschließlich über `[ CAMERA ]`. Danach kann Voice sie stoppen, den lokalen Hintergrund-Feed zeigen/verbergen, seine Opacity ändern, ein ausschließlich lokal gespeichertes Foto aufnehmen oder nach einer ausdrücklichen visuellen Frage und Einmal-Bestätigung höchstens einen aktuellen Frame analysieren. Fotos erscheinen im Chat und lassen sich einzeln herunterladen. Architektur, Privacy-Grenzen, Browser-Limits, Testmatrix und Roadmap: [`docs/camera.md`](docs/camera.md).
+
 ## Optionale lokale Agents
 
 Unter `[ CHATS ] → [ LOCAL AGENTS ]` können mehrere Hermes- oder OpenClaw-Verbindungen gespeichert werden. Voice funktioniert ohne sie unverändert. Profile liegen im `localStorage`; Agent-Zugänge, die nicht exportierbare OpenClaw-Geräteidentität und Inbox-Aufträge liegen in IndexedDB. Nach Reload, Netzwechsel oder iOS-Suspend baut die App den Socket neu auf und gleicht offene Aufträge ab – ein Browser kann keinen laufenden Socket selbst dauerhaft speichern.

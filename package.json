@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types src/lib/state.test.ts && node --experimental-strip-types src/lib/tab-ownership.test.ts && node --experimental-strip-types src/lib/agent-state.test.ts && node --experimental-strip-types src/lib/hermes.test.ts && node --experimental-strip-types src/lib/openclaw.test.ts",
+    "test": "node --experimental-strip-types src/lib/state.test.ts && node --experimental-strip-types src/lib/camera.test.ts && node --experimental-strip-types src/lib/camera-policy.test.ts && node --experimental-strip-types src/lib/tab-ownership.test.ts && node --experimental-strip-types src/lib/agent-state.test.ts && node --experimental-strip-types src/lib/hermes.test.ts && node --experimental-strip-types src/lib/openclaw.test.ts",
     "preview": "astro preview"
   },
   "dependencies": {

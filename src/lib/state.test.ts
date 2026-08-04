@@ -45,4 +45,61 @@ const processor = new WakeAudioProcessor!();
 for (let offset = 0; offset < 48_000; offset += 128) processor.resample(new Float32Array(128));
 assert.equal(processor.frameOffset, 640);
 
+class FakeWorker {
+  onmessage = null;
+  onerror = null;
+  postMessage() {}
+  terminate() {}
+}
+let audioContextCreates = 0;
+let audioContextResumes = 0;
+class FakeAudioContext {
+  state = "suspended";
+  constructor() { audioContextCreates++; }
+  async resume() { audioContextResumes++; this.state = "running"; }
+  async close() { this.state = "closed"; }
+}
+Object.defineProperty(globalThis, "Worker", { configurable: true, value: FakeWorker });
+Object.defineProperty(globalThis, "AudioContext", { configurable: true, value: FakeAudioContext });
+Object.defineProperty(globalThis, "window", { configurable: true, value: globalThis });
+const { WakeWordDetector } = await import("./wake-word.ts");
+const detector = new WakeWordDetector(() => {}, () => {});
+await detector.resume();
+assert.equal(audioContextCreates, 1);
+assert.equal(audioContextResumes, 1);
+await detector.destroy();
+
+let resolveMicrophone!: (stream: { getTracks: () => Array<{ stop: () => void }> }) => void;
+let stoppedTracks = 0;
+Object.defineProperty(globalThis, "navigator", {
+  configurable: true,
+  value: { mediaDevices: { getUserMedia: () => new Promise((resolve) => { resolveMicrophone = resolve; }) } }
+});
+const interruptedDetector = new WakeWordDetector(() => {}, () => {});
+const interruptedStart = interruptedDetector.start();
+await Promise.resolve();
+await interruptedDetector.stop();
+resolveMicrophone({ getTracks: () => [{ stop: () => { stoppedTracks++; } }] });
+await assert.rejects(interruptedStart, (error: DOMException) => error.name === "AbortError");
+assert.equal(stoppedTracks, 1);
+await interruptedDetector.destroy();
+
+const appSource = readFileSync(new URL("../scripts/app.ts", import.meta.url), "utf8");
+const gestureHandler = appSource.slice(appSource.indexOf("const resumeWakeFromGesture"), appSource.indexOf("agentList.addEventListener"));
+assert.ok(gestureHandler.indexOf("wakeDetector?.resume()") < gestureHandler.indexOf("wakeSubscribed || wakeStarting"));
+assert.match(gestureHandler, /addEventListener\("click", resumeWakeFromGesture/);
+const wakeSource = readFileSync(new URL("./wake-word.ts", import.meta.url), "utf8");
+assert.ok(wakeSource.indexOf("getUserMedia") < wakeSource.indexOf("new AudioContext"));
+assert.doesNotMatch(wakeSource, /sampleRate:\s*\{\s*ideal:/);
+const pageSource = readFileSync(new URL("../pages/index.astro", import.meta.url), "utf8");
+assert.match(pageSource, /name="voicear-build"/);
+assert.match(pageSource, /id="voice-button"/);
+assert.match(appSource, /fetch\(`\/\?_voicear_check=\$\{Date\.now\(\)\}`,[^}]+cache: "no-store"/);
+assert.match(appSource, /location\.replace\(url\)/);
+const voiceHandler = appSource.slice(appSource.indexOf('voiceButton.addEventListener("click"'), appSource.indexOf("const resumeWakeFromGesture"));
+assert.match(voiceHandler, /claimAudioOwnership\(\)/);
+assert.match(voiceHandler, /startRealtime\(\)/);
+assert.match(voiceHandler, /endRealtime\("READY"\)/);
+assert.match(appSource, /closest\?\.\("#voice-button"\)/);
+
 console.log("state checks passed");

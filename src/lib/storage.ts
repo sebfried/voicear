@@ -2,6 +2,8 @@ import { z } from "zod";
 import { agentConnectionSchema, agentTaskSchema, type AgentConnection, type AgentTask } from "./agent-state";
 import type { Chat } from "./state";
 
+const MAX_PHOTO_BYTES = 12 * 1024 * 1024;
+
 const messageSchema = z.object({
   id: z.string(),
   role: z.enum(["user", "assistant"]),
@@ -17,9 +19,27 @@ const chatSchema = z.object({
   messages: z.array(messageSchema)
 });
 
+const photoSchema = z.object({
+  id: z.string().min(1),
+  chatId: z.string().min(1),
+  afterMessageCount: z.number().int().nonnegative().safe(),
+  createdAt: z.number().finite().nonnegative(),
+  mimeType: z.enum(["image/jpeg", "image/webp"]),
+  width: z.number().int().positive().max(8192),
+  height: z.number().int().positive().max(8192),
+  blob: z.custom<Blob>((value) => typeof Blob !== "undefined" && value instanceof Blob)
+}).superRefine((photo, context) => {
+  if (photo.blob.size === 0) context.addIssue({ code: "custom", path: ["blob"], message: "Foto ist leer." });
+  if (photo.blob.size > MAX_PHOTO_BYTES) context.addIssue({ code: "custom", path: ["blob"], message: "Foto ist zu groß." });
+  if (photo.blob.type && photo.blob.type !== photo.mimeType) {
+    context.addIssue({ code: "custom", path: ["blob"], message: "Fotoformat stimmt nicht mit dem Blob überein." });
+  }
+});
+
 const settingsSchema = z.object({
   fontScale: z.number().min(0.8).max(1.8),
-  model: z.enum(["gpt-realtime-2.1-mini", "gpt-realtime-2.1"])
+  model: z.enum(["gpt-realtime-2.1-mini", "gpt-realtime-2.1"]),
+  cameraOpacity: z.number().int().min(10).max(100).default(35)
 });
 
 export const credentialsSchema = z.object({
@@ -28,9 +48,13 @@ export const credentialsSchema = z.object({
 
 export type Settings = z.infer<typeof settingsSchema>;
 export type Credentials = z.infer<typeof credentialsSchema>;
+export type PhotoRecord = z.infer<typeof photoSchema>;
 
 const DB_NAME = "voicear";
 const CHAT_STORE = "chats";
+const DELETED_CHAT_STORE = "deletedChats";
+const PHOTO_STORE = "photos";
+const PHOTO_CHAT_INDEX = "chatId";
 const AGENT_CREDENTIAL_STORE = "agentCredentials";
 const AGENT_TASK_STORE = "agentTasks";
 const SETTINGS_KEY = "voicear.settings";
@@ -67,11 +91,15 @@ export type AgentCredential =
 export type OpenClawCredential = Extract<AgentCredential, { kind: "openclaw" }>;
 
 const db = new Promise<IDBDatabase>((resolve, reject) => {
-  const request = indexedDB.open(DB_NAME, 2);
+  const request = indexedDB.open(DB_NAME, 4);
   request.onupgradeneeded = () => {
-    for (const store of [CHAT_STORE, AGENT_CREDENTIAL_STORE, AGENT_TASK_STORE]) {
+    for (const store of [CHAT_STORE, DELETED_CHAT_STORE, AGENT_CREDENTIAL_STORE, AGENT_TASK_STORE]) {
       if (!request.result.objectStoreNames.contains(store)) request.result.createObjectStore(store, { keyPath: "id" });
     }
+    const photos = request.result.objectStoreNames.contains(PHOTO_STORE)
+      ? request.transaction!.objectStore(PHOTO_STORE)
+      : request.result.createObjectStore(PHOTO_STORE, { keyPath: "id" });
+    if (!photos.indexNames.contains(PHOTO_CHAT_INDEX)) photos.createIndex(PHOTO_CHAT_INDEX, "chatId");
   };
   request.onsuccess = () => {
     databaseConnection = request.result;
@@ -112,15 +140,89 @@ export const getChat = async (id: string) => {
   return parsed.success ? parsed.data as Chat : null;
 };
 
-export const putChat = (chat: Chat) => transaction<IDBValidKey>(CHAT_STORE, "readwrite", (store) => store.put(chat));
-export const removeChat = (id: string) => transaction<undefined>(CHAT_STORE, "readwrite", (store) => store.delete(id));
+export const putChat = async (chat: Chat) => {
+  const parsed = chatSchema.parse(chat);
+  const database = await db;
+  return new Promise<boolean>((resolve, reject) => {
+    const tx = database.transaction([CHAT_STORE, DELETED_CHAT_STORE], "readwrite");
+    const tombstone = tx.objectStore(DELETED_CHAT_STORE).get(parsed.id);
+    let saved = false;
+    tombstone.onsuccess = () => {
+      if (tombstone.result) return;
+      tx.objectStore(CHAT_STORE).put(parsed);
+      saved = true;
+    };
+    tx.oncomplete = () => resolve(saved);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+};
+
+export const listPhotos = async (chatId: string) => {
+  const raw = await transaction<unknown[]>(PHOTO_STORE, "readonly", (store) =>
+    store.index(PHOTO_CHAT_INDEX).getAll(IDBKeyRange.only(chatId))
+  );
+  return raw.flatMap((value) => {
+    const parsed = photoSchema.safeParse(value);
+    return parsed.success && parsed.data.chatId === chatId ? [parsed.data] : [];
+  }).sort((left, right) =>
+    left.afterMessageCount - right.afterMessageCount || left.createdAt - right.createdAt || left.id.localeCompare(right.id)
+  );
+};
+
+export const putPhoto = async (photo: PhotoRecord) => {
+  const parsed = photoSchema.parse(photo);
+  const database = await db;
+  return new Promise<PhotoRecord>((resolve, reject) => {
+    const tx = database.transaction([CHAT_STORE, PHOTO_STORE], "readwrite");
+    const chats = tx.objectStore(CHAT_STORE);
+    const request = chats.get(parsed.chatId);
+    let failure: Error | null = null;
+    request.onsuccess = () => {
+      const chat = chatSchema.safeParse(request.result);
+      if (!chat.success) {
+        failure = new Error("Chat für Foto existiert nicht.");
+        tx.abort();
+        return;
+      }
+      tx.objectStore(PHOTO_STORE).put(parsed);
+      chats.put({ ...chat.data, updatedAt: Math.max(chat.data.updatedAt, parsed.createdAt) });
+    };
+    request.onerror = () => reject(request.error);
+    tx.oncomplete = () => resolve(parsed);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(failure ?? tx.error);
+  });
+};
+
+export const removePhoto = (id: string) =>
+  transaction<undefined>(PHOTO_STORE, "readwrite", (store) => store.delete(id));
+
+export const removeChat = async (id: string) => {
+  const database = await db;
+  return new Promise<void>((resolve, reject) => {
+    const tx = database.transaction([CHAT_STORE, DELETED_CHAT_STORE, PHOTO_STORE], "readwrite");
+    tx.objectStore(CHAT_STORE).delete(id);
+    tx.objectStore(DELETED_CHAT_STORE).put({ id, deletedAt: Date.now() });
+    const photos = tx.objectStore(PHOTO_STORE).index(PHOTO_CHAT_INDEX).openCursor(IDBKeyRange.only(id));
+    photos.onsuccess = () => {
+      const current = photos.result;
+      if (!current) return;
+      current.delete();
+      current.continue();
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+};
 
 export const loadSettings = (): Settings => {
   try {
     const parsed = settingsSchema.safeParse(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "null"));
     if (parsed.success) return parsed.data;
   } catch {}
-  return { fontScale: 1, model: "gpt-realtime-2.1-mini" };
+  return { fontScale: 1, model: "gpt-realtime-2.1-mini", cameraOpacity: 35 };
 };
 
 export const saveSettings = (settings: Settings) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));

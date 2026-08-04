@@ -20,8 +20,14 @@ export class WakeWordDetector {
   private detected = false;
   private pending: ArrayBuffer[] = [];
   private firstFrame: (() => void) | null = null;
+  private firstFrameTimer = 0;
+  private rejectFirstFrame: ((error: DOMException) => void) | null = null;
+  private onDetect: (score: number) => void;
+  private onError: (error: Error) => void;
 
-  constructor(private onDetect: (score: number) => void, private onError: (error: Error) => void) {
+  constructor(onDetect: (score: number) => void, onError: (error: Error) => void) {
+    this.onDetect = onDetect;
+    this.onError = onError;
     this.worker.onmessage = ({ data }: MessageEvent<WakeWorkerMessage>) => this.handleWorkerMessage(data);
     this.worker.onerror = (event) => this.handleError(new Error(event.message || "Wake-Word-Worker abgestürzt."));
   }
@@ -58,46 +64,60 @@ export class WakeWordDetector {
     this.pending = [];
 
     try {
-      const context = new AudioContext({ latencyHint: "interactive", sampleRate: 16_000 });
-      this.context = context;
-      const resume = context.resume();
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      const streamPromise = navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          sampleRate: { ideal: 16_000 },
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
         }
+      }).then((stream) => {
+        if (session !== this.session) {
+          stream.getTracks().forEach((track) => track.stop());
+          throw new DOMException("Lokaler Audiostart wurde unterbrochen.", "AbortError");
+        }
+        this.stream = stream;
+        return stream;
       });
-      await Promise.all([this.load(), resume]);
-      if (session !== this.session || this.context !== context) throw new Error("Lokaler Audiostart wurde unterbrochen. Tippe einmal auf die Seite.");
+      const [stream] = await Promise.all([streamPromise, this.load()]);
+      const context = this.context ?? new AudioContext({ latencyHint: "interactive" });
+      this.context = context;
       await context.audioWorklet.addModule("/wake-audio-worklet.js");
-      this.source = context.createMediaStreamSource(this.stream);
+      if (session !== this.session || this.context !== context) throw new DOMException("Lokaler Audiostart wurde unterbrochen.", "AbortError");
+      this.source = context.createMediaStreamSource(stream);
       this.worklet = new AudioWorkletNode(context, "wake-audio-processor", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
       this.worklet.port.onmessage = ({ data }: MessageEvent<Float32Array>) => this.enqueue(data);
       this.source.connect(this.worklet);
       this.worklet.connect(context.destination);
-      if (context.state !== "running") await context.resume();
-      if (context.state !== "running") throw new Error(`Lokales Audio konnte nicht gestartet werden (${context.state}). Tippe erneut auf START VOICE.`);
+      if (context.state !== "running") void context.resume().catch(() => undefined);
       this.running = true;
       await new Promise<void>((resolve, reject) => {
-        const timeout = window.setTimeout(() => reject(new Error("Das iPhone liefert keine verarbeitbaren Mikrofonframes. Tippe einmal auf die Seite.")), 10_000);
+        this.rejectFirstFrame = reject;
+        this.firstFrameTimer = window.setTimeout(() => {
+          this.clearFirstFrameWait();
+          reject(new DOMException("Das iPhone liefert keine verarbeitbaren Mikrofonframes. Tippe einmal auf die Seite.", "NotReadableError"));
+        }, 10_000);
         this.firstFrame = () => {
-          window.clearTimeout(timeout);
+          this.clearFirstFrameWait();
           resolve();
         };
       });
     } catch (error) {
+      const interrupted = session !== this.session;
       await this.stop();
-      throw error;
+      throw interrupted && (!(error instanceof DOMException) || error.name !== "AbortError")
+        ? new DOMException("Lokaler Audiostart wurde unterbrochen.", "AbortError")
+        : error;
     }
   }
 
   async resume() {
-    if (!this.running || !this.context || this.context.state === "running") return;
-    await this.context.resume();
-    const state = this.context.state as AudioContextState;
+    if (!this.context) this.context = new AudioContext({ latencyHint: "interactive" });
+    const context = this.context;
+    if (!context || context.state === "running" || context.state === "closed") return;
+    await context.resume();
+    if (this.context !== context) return;
+    const state = context.state as AudioContextState;
     if (state !== "running") throw new Error(`Lokales Audio ist unterbrochen (${state}).`);
   }
 
@@ -105,7 +125,9 @@ export class WakeWordDetector {
     this.running = false;
     this.session++;
     this.pending = [];
-    this.firstFrame = null;
+    const rejectFirstFrame = this.rejectFirstFrame;
+    this.clearFirstFrameWait();
+    rejectFirstFrame?.(new DOMException("Lokaler Audiostart wurde beendet.", "AbortError"));
     this.busy = false;
     if (this.worklet) {
       this.worklet.port.onmessage = null;
@@ -119,6 +141,13 @@ export class WakeWordDetector {
     this.stream = null;
     if (this.context && this.context.state !== "closed") await this.context.close();
     this.context = null;
+  }
+
+  private clearFirstFrameWait() {
+    window.clearTimeout(this.firstFrameTimer);
+    this.firstFrameTimer = 0;
+    this.firstFrame = null;
+    this.rejectFirstFrame = null;
   }
 
   async destroy() {
