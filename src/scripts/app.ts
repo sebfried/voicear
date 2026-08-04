@@ -1961,7 +1961,6 @@ const startRealtime = async (restartIfPending = false) => {
     });
     const track = startStream.getAudioTracks()[0];
     track.enabled = false;
-    console.info("Active microphone settings", track.getSettings());
     if (!isCurrentStart()) {
       startStream.getTracks().forEach((candidate) => candidate.stop());
       return;

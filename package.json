@@ -1,6 +1,19 @@
 {
   "name": "voicear",
+  "description": "Local-first browser voice agent with on-device wake-word detection",
   "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebfried/voicear.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sebfried/voicear/issues"
+  },
+  "homepage": "https://github.com/sebfried/voicear#readme",
+  "engines": {
+    "node": ">=22.19.0"
+  },
   "type": "module",
   "packageManager": "pnpm@11.18.0",
   "scripts": {

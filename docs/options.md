@@ -11,7 +11,7 @@ This file records the final choices and the important limits that are easy to mi
 - Non-secret connection profiles are stored in `localStorage`. Agent credentials, the non-extractable OpenClaw device key, and task snapshots are stored in IndexedDB. Agent results never become chat messages.
 - Each connector owns its native remote run/session identifiers. Voicear keeps one small, durable task projection rather than inventing a shared event log or protocol.
 - The Inbox appears only when at least one connection is saved. One connector failing must not affect OpenAI Voice, wake-word detection, chats, or another connector.
-- The service worker caches same-origin app assets only. It does not own agent sockets, credentials, polling, or background work.
+- The current app does not use a persistent service worker. Its legacy worker only removes obsolete Voicear caches and unregisters itself; it never owns agent sockets, credentials, polling, or background work.
 
 No account, Voicear backend, cloud relay, WebRTC mesh, A2A gateway, or MCP gateway is required for this version.
 

@@ -1,7 +1,7 @@
 {
-  "name": "Voice",
-  "short_name": "Voice",
-  "description": "Local-first realtime voice agent",
+  "name": "Voicear",
+  "short_name": "Voicear",
+  "description": "Local-first browser voice agent with on-device wake-word detection",
   "start_url": "/",
   "scope": "/",
   "id": "/",

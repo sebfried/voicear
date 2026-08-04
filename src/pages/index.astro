@@ -15,7 +15,7 @@ const buildId = import.meta.env.PUBLIC_VOICEAR_BUILD;
     <link rel="stylesheet" href={`/global.css?v=${buildId}`} />
     <link rel="manifest" href={`/manifest.webmanifest?v=${buildId}`} />
     <link rel="apple-touch-icon" href={`/icon-192.png?v=${buildId}`} />
-    <title>Voice</title>
+    <title>Voicear</title>
   </head>
   <body>
     <div id="camera-layer" aria-hidden="true">
@@ -43,8 +43,8 @@ const buildId = import.meta.env.PUBLIC_VOICEAR_BUILD;
     <section id="camera-controls" aria-label="Kamerasteuerung" aria-describedby="camera-privacy-help">
       <div class="camera-control-head">
         <span id="camera-status" role="status" aria-live="polite" aria-atomic="true">CAMERA: OFF</span>
-        <small aria-hidden="true">PREVIEW + PHOTOS LOCAL · FRAME SEND NEEDS QUESTION + CONFIRMATION</small>
-        <span id="camera-privacy-help" class="sr-only">Kameravorschau und Fotos bleiben lokal. Ein einzelnes Bild wird nur zusammen mit deiner visuellen Frage und nach deiner Bestätigung übertragen.</span>
+        <small aria-hidden="true">PREVIEW + PHOTOS LOCAL · SHARE NEEDS ACTION</small>
+        <span id="camera-privacy-help" class="sr-only">Kameravorschau und Fotos bleiben lokal. Ein gespeichertes Foto wird nur über Send to Agent oder nach einem ausdrücklichen Sprachbefehl und deiner Bestätigung übertragen. Ein aktuelles Kamerabild wird nur nach einer visuellen Frage und deiner Bestätigung übertragen.</span>
       </div>
       <div class="camera-control-actions">
         <button id="camera-feed-toggle" class="quiet" type="button" aria-pressed="false" aria-controls="camera-layer" aria-describedby="camera-feed-help">[ FEED ]</button>

@@ -1,3 +1,5 @@
+// Browser/ONNX pipeline adapted from openWakeWord v0.5.1 (Apache-2.0).
+// Model-specific licenses are documented in public/THIRD_PARTY_NOTICES.md.
 import * as ort from "onnxruntime-web/wasm";
 
 const MODEL_ROOT = "/openwakeword/models";
