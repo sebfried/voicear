@@ -24,6 +24,9 @@ const loadAgentsLibrary = () => agentsLibrary ??= import("@openai/agents/realtim
   OpenAIRealtimeWebRTC = module.OpenAIRealtimeWebRTC;
   tool = module.tool;
   backgroundResult = module.backgroundResult;
+}).catch((error) => {
+  agentsLibrary = null;
+  throw error;
 });
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -1943,6 +1946,8 @@ const startRealtime = async (restartIfPending = false) => {
   let realtimeStage = "SETUP";
 
   try {
+    await checkForUpdate();
+    if (reloadingForUpdate || !isCurrentStart()) return;
     await stopWake();
     if (!isCurrentStart()) return;
     setNotice();
@@ -2092,7 +2097,7 @@ const startRealtime = async (restartIfPending = false) => {
     flushHistory = null;
     startStream?.getTracks().forEach((track) => track.stop());
     if (mediaStream === startStream) mediaStream = null;
-    if (!isCurrentStart()) return;
+    if (reloadingForUpdate || !isCurrentStart()) return;
     setStatus("ERROR");
     const networkFailure = error instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(error.message);
     const detail = networkFailure
@@ -2550,6 +2555,39 @@ const readDevAssetTag = async () => {
   return responses.map(({ headers }) => headers.get("etag") ?? headers.get("last-modified") ?? "").join("|");
 };
 
+const reloadForUpdate = async (build: string, guard = false) => {
+  if (reloadingForUpdate) return true;
+  await cameraFrameQueue;
+  if (unsavedPhotos.size) {
+    setNotice("UPDATE READY · DOWNLOAD OR DELETE THE UNSAVED PHOTO FIRST");
+    return false;
+  }
+  if (guard) {
+    try {
+      if (sessionStorage.getItem("voicear.preloadRecovery") === build) return false;
+    } catch {}
+  }
+  if (reloadingForUpdate) return true;
+  reloadingForUpdate = true;
+  try {
+    await suspendAudioOwnership();
+  } catch (error) {
+    reloadingForUpdate = false;
+    throw error;
+  }
+  if (guard) {
+    try { sessionStorage.setItem("voicear.preloadRecovery", build); } catch {}
+  }
+  const url = new URL(location.href);
+  url.searchParams.set("_voicear_update", build);
+  location.replace(url);
+  return true;
+};
+
+window.addEventListener("vite:preloadError", () => {
+  void reloadForUpdate(appBuild || Date.now().toString(), true);
+});
+
 const checkForUpdate = () => {
   if (!appBuild || !navigator.onLine || reloadingForUpdate) return Promise.resolve();
   if (updateCheck) return updateCheck;
@@ -2562,16 +2600,7 @@ const checkForUpdate = () => {
     const devAssetsChanged = Boolean(devAssetTag && nextDevAssetTag && devAssetTag !== nextDevAssetTag);
     devAssetTag ||= nextDevAssetTag;
     if (!remoteBuild || (remoteBuild === appBuild && !devAssetsChanged)) return;
-    await cameraFrameQueue;
-    if (unsavedPhotos.size) {
-      setNotice("UPDATE READY · DOWNLOAD OR DELETE THE UNSAVED PHOTO FIRST");
-      return;
-    }
-    reloadingForUpdate = true;
-    await suspendAudioOwnership();
-    const url = new URL(location.href);
-    url.searchParams.set("_voicear_update", remoteBuild);
-    location.replace(url);
+    await reloadForUpdate(remoteBuild);
   })().catch((error) => console.warn("App update", error)).finally(() => { updateCheck = null; });
   return updateCheck;
 };
@@ -2593,6 +2622,13 @@ const activateThisTab = async () => {
   else await restoreWakeAudio();
 };
 
+const resumeVisibleApp = async () => {
+  await checkForUpdate();
+  if (reloadingForUpdate) return;
+  await activateThisTab();
+  void reconcileAgentTasks("reconcile");
+};
+
 tabChannel?.addEventListener("message", ({ data }) => observeAudioClaim(parseTabClaim(data)));
 window.addEventListener("storage", (event) => {
   if (event.key === AUDIO_OWNER_KEY) observeAudioClaim(parseTabClaim(event.newValue));
@@ -2603,15 +2639,13 @@ document.addEventListener("visibilitychange", () => {
     void suspendAudioOwnership();
     return;
   }
-  void checkForUpdate();
-  void activateThisTab();
-  void reconcileAgentTasks("reconcile");
+  void resumeVisibleApp();
 });
-window.addEventListener("pageshow", () => { void checkForUpdate(); void activateThisTab(); void reconcileAgentTasks("reconcile"); });
+window.addEventListener("pageshow", () => { void resumeVisibleApp(); });
 window.addEventListener("pagehide", () => { void suspendAudioOwnership(); });
 window.addEventListener("offline", () => { setStatus("OFFLINE"); if (session) void endRealtime("READY"); });
 window.addEventListener("online", () => { if (started && !session) void startWake(); void reconcileAgentTasks("reconcile"); });
-window.addEventListener("focus", () => { void activateThisTab(); void reconcileAgentTasks("reconcile"); });
+window.addEventListener("focus", () => { void resumeVisibleApp(); });
 navigator.mediaDevices?.addEventListener("devicechange", () => {
   if (!started || !hasAudioOwnership || reconnectingAudio || wakeStarting || realtimeStarting) return;
   reconnectingAudio = true;
@@ -2665,8 +2699,10 @@ const registerServiceWorker = async () => {
 };
 
 void registerServiceWorker();
-void checkForUpdate();
-void initialize().catch((error) => {
+void (async () => {
+  await checkForUpdate();
+  if (!reloadingForUpdate) await initialize();
+})().catch((error) => {
   setStatus("ERROR");
   setNotice(errorMessage(error, "Voicear konnte nicht initialisiert werden."));
 });
