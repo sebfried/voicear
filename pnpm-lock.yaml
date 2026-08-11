@@ -18,8 +18,8 @@ importers:
   .:
     dependencies:
       '@openai/agents':
-        specifier: 0.14.1
-        version: 0.14.1(ws@8.21.1)(zod@4.4.3)
+        specifier: 0.14.3
+        version: 0.14.3(ws@8.21.3)(zod@4.4.3)
       '@openclaw/gateway-client':
         specifier: 2026.7.2-beta.6
         version: 2026.7.2-beta.6
@@ -35,7 +35,7 @@ importers:
     devDependencies:
       '@vitejs/plugin-basic-ssl':
         specifier: ^2.3.0
-        version: 2.3.0(vite@8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0))
+        version: 2.3.0(vite@8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0))
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -367,8 +367,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@hono/node-server@2.0.12':
-    resolution: {integrity: sha512-eWpQYr67tqJLeaSUl0Q+TquuYfUdTibpOJlUMV2FfUP7+KqCC5TufnwnlXL6mobZBJbGAYRd7ZvEBDCbLInjhg==}
+  '@hono/node-server@2.1.0':
+    resolution: {integrity: sha512-XovyyCCnBzW+zKu+z/zq8hwNs4KOR5rEMAOxo2f40Q5xoOI37IMm6MIg2COOUtUApo0i6850MTBKH2u4QLGIqg==}
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4
@@ -564,26 +564,26 @@ packages:
   '@napi-rs/wasm-runtime@1.1.1':
     resolution: {integrity: sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A==}
 
-  '@openai/agents-core@0.14.1':
-    resolution: {integrity: sha512-OI4W1UlaO77F7NpOq+gVR4dyYtLzXk42JtX5vafkznP7bGoj1iGvQE2ndeGkyiBlZKZqaewc6M8D8yqfp8OWZg==}
+  '@openai/agents-core@0.14.3':
+    resolution: {integrity: sha512-5tJnFL4Ei34GtArVatM9TUtILDYUXJ2/H0+9jIU8B7y5eINjrQtajmeaudFHmxA4/t7blRgG1SuKQfoA0FPy7A==}
     peerDependencies:
       zod: ^4.0.0
     peerDependenciesMeta:
       zod:
         optional: true
 
-  '@openai/agents-openai@0.14.1':
-    resolution: {integrity: sha512-r1wb+7SU1lg/4XFk150iPsV2L9X0Y/vq93ic4AhFl3ByuUJOp3Emqn2GfBGAZ4xrU2uXg1VdtMZgG3QtsBZE+g==}
+  '@openai/agents-openai@0.14.3':
+    resolution: {integrity: sha512-ctJhe/scinyUGtv+MCkkHH+QEza96UmeeUPGNKT3ZFWlz1OCj+xC6YxvwX0WBaZQz0BYAgl6m0aIRnfTgBMO9A==}
     peerDependencies:
       zod: ^4.0.0
 
-  '@openai/agents-realtime@0.14.1':
-    resolution: {integrity: sha512-Fy0PtjTUNBItigYGcarBAFPQOkmYJ6v/oWroV1XcwPttFN/KCytFmGbKECUy3Z8rfLH/DU17uSNBH4gn0DPjGg==}
+  '@openai/agents-realtime@0.14.3':
+    resolution: {integrity: sha512-eeoc49ti7Pi+GPrivUE7M6PGOQAI6jK3UG82aZtwhi6IHj0uHxzNEK33NQODKag1W40ZJm/R0JWxMWS+lQrjDQ==}
     peerDependencies:
       zod: ^4.0.0
 
-  '@openai/agents@0.14.1':
-    resolution: {integrity: sha512-YPl83yPN3UbGV3cyUobiymLnAQFlXCDBBorS16ctFAVUIJ8OWMEg0puYToarz8Q0W7FexHnKui727qFC4IkR0w==}
+  '@openai/agents@0.14.3':
+    resolution: {integrity: sha512-mhAPpDz+CeEoViMsYxPcHEMUonPQnGIgP2yCch/SXhXQkhb/53ojO2bUIXW3NSD5lIDyyV6sTIkO+O5WWJrVDA==}
     peerDependencies:
       zod: ^4.0.0
 
@@ -924,6 +924,9 @@ packages:
 
   '@types/node@26.1.2':
     resolution: {integrity: sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==}
+
+  '@types/node@26.2.0':
+    resolution: {integrity: sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg==}
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
@@ -1332,16 +1335,16 @@ packages:
   eventemitter3@5.0.4:
     resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
 
-  eventsource-parser@3.1.0:
-    resolution: {integrity: sha512-kJezFj9YFAMLeORyi7aCLxLbD5/qWMQnoMVlVPyHIll7lgRJCc3JVln9Vgl9nwQi0YkMnhdGTMNn7CkRRAptMg==}
+  eventsource-parser@3.1.1:
+    resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
     engines: {node: '>=18.0.0'}
 
   eventsource@3.0.7:
     resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
     engines: {node: '>=18.0.0'}
 
-  express-rate-limit@8.6.1:
-    resolution: {integrity: sha512-0D493aP61w0TJ2A0wy27riRsO7FMQ7FK+KUHOKCSfPvYo0R55aiC6emCVgFUeShH0fq0ICPVzNcgoS+BsbXQCA==}
+  express-rate-limit@8.6.2:
+    resolution: {integrity: sha512-YH4ru+eOJxQABscKFfRCy9R7x9QFGdezclVMwwgFFndzS2Xnm0uo6B0ABZsLhcpeptGv2qvuJVWlQr9gQZoC3A==}
     engines: {node: '>= 16'}
     peerDependencies:
       express: '>= 4.11'
@@ -1362,8 +1365,8 @@ packages:
   fast-string-width@3.0.2:
     resolution: {integrity: sha512-gX8LrtNEI5hq8DVUfRQMbr5lpaS4nMIWV+7XEbXk2b8kiQIizgnlr12B4dA3ZEx3308ze0O4Q1R+cHts8kyUJg==}
 
-  fast-uri@3.1.4:
-    resolution: {integrity: sha512-8JnbkQ4juDyvYs4mgFGQqg4yCYtFDtUtmp2QIQq11ZZe5CFQ5wcqm1rqDgAh/QdMySuBnPzMUiJUNZG5N/AiQw==}
+  fast-uri@3.1.5:
+    resolution: {integrity: sha512-gHwA1O9LDIcKunMKhObS/HimwtehO1nPUECKAu5TpKgaO19fcWEl4bliWe1jWxVFvIXztJjjQ4L8XQ1EU9f7Jw==}
 
   fast-wrap-ansi@0.2.2:
     resolution: {integrity: sha512-7F2Fl+TjRSenLqlU3UjSH0iyqopqoZIu7eZVpEirP2g1GtWa2G/ecEmBdgz31+Mxr+ELclgg6sokpSFIQiZ02Q==}
@@ -1462,8 +1465,8 @@ packages:
   hastscript@9.0.1:
     resolution: {integrity: sha512-g7df9rMFX/SPi34tyGCyUBREQoKkapwdY/T04Qn9TDWfHhAYt4/I0gMVirzK5wEzeUqIjEB+LXC/ypb7Aqno5w==}
 
-  hono@4.12.32:
-    resolution: {integrity: sha512-XcuyW9qE2kJn07PkecMOBd5Vq/hMy7mmGw+idz1yblbg9N17ijJODrvPkn7/dwL3Kulj8LcRJ69DLOWf91dRUg==}
+  hono@4.13.1:
+    resolution: {integrity: sha512-kdJoFVv2xmayw6cY09H7AbMJMt8Jn5jdlEdXsP7AGBdF2DIptVlKlOLKXP41yPip4/a3yQPv9gVcJYI8YY04dw==}
     engines: {node: '>=16.9.0'}
 
   html-escaper@3.0.3:
@@ -1486,8 +1489,8 @@ packages:
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
 
-  ip-address@10.3.1:
-    resolution: {integrity: sha512-1e9d3kb97NHJTIJDZW9rKqW2h6+dFa50Dy0fpPSMQp2ADje5gvKsXmdiK6dwY5t76TaTt5+P5N1Y/LoToIxP6g==}
+  ip-address@10.5.0:
+    resolution: {integrity: sha512-R5SnVLJmgYYvf2F2ZgwSBnelz5G4q5AxIC277GDfUaNbrZKNANcBC7RHqYYePlszf4kBolVkJauG0ZjHHFh55g==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -2208,6 +2211,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.21.3:
+    resolution: {integrity: sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xxhash-wasm@1.1.0:
     resolution: {integrity: sha512-147y/6YNh+tlp6nd/2pWq38i9h6mz/EuQ6njIrmW8D1BS5nCqs0P6DG+m6zTGnNz5I+uhZ0SHxBs9BsPrwcKDA==}
 
@@ -2466,9 +2481,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@hono/node-server@2.0.12(hono@4.12.32)':
+  '@hono/node-server@2.1.0(hono@4.13.1)':
     dependencies:
-      hono: 4.12.32
+      hono: 4.13.1
     optional: true
 
   '@img/colour@1.1.0':
@@ -2603,17 +2618,17 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.30.0(zod@4.4.3)':
     dependencies:
-      '@hono/node-server': 2.0.12(hono@4.12.32)
+      '@hono/node-server': 2.1.0(hono@4.13.1)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
       cors: 2.8.6
       cross-spawn: 7.0.6
       eventsource: 3.0.7
-      eventsource-parser: 3.1.0
+      eventsource-parser: 3.1.1
       express: 5.2.1
-      express-rate-limit: 8.6.1(express@5.2.1)
-      hono: 4.12.32
+      express-rate-limit: 8.6.2(express@5.2.1)
+      hono: 4.13.1
       jose: 6.2.4
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -2631,10 +2646,10 @@ snapshots:
       '@tybys/wasm-util': 0.10.3
     optional: true
 
-  '@openai/agents-core@0.14.1(ws@8.21.1)(zod@4.4.3)':
+  '@openai/agents-core@0.14.3(ws@8.21.3)(zod@4.4.3)':
     dependencies:
       debug: 4.4.3
-      openai: 6.49.0(ws@8.21.1)(zod@4.4.3)
+      openai: 6.49.0(ws@8.21.3)(zod@4.4.3)
     optionalDependencies:
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.4.3)
       zod: 4.4.3
@@ -2646,11 +2661,11 @@ snapshots:
       - supports-color
       - ws
 
-  '@openai/agents-openai@0.14.1(ws@8.21.1)(zod@4.4.3)':
+  '@openai/agents-openai@0.14.3(ws@8.21.3)(zod@4.4.3)':
     dependencies:
-      '@openai/agents-core': 0.14.1(ws@8.21.1)(zod@4.4.3)
+      '@openai/agents-core': 0.14.3(ws@8.21.3)(zod@4.4.3)
       debug: 4.4.3
-      openai: 6.49.0(ws@8.21.1)(zod@4.4.3)
+      openai: 6.49.0(ws@8.21.3)(zod@4.4.3)
       zod: 4.4.3
     transitivePeerDependencies:
       - '@aws-sdk/credential-provider-node'
@@ -2660,12 +2675,12 @@ snapshots:
       - supports-color
       - ws
 
-  '@openai/agents-realtime@0.14.1(zod@4.4.3)':
+  '@openai/agents-realtime@0.14.3(zod@4.4.3)':
     dependencies:
-      '@openai/agents-core': 0.14.1(ws@8.21.1)(zod@4.4.3)
+      '@openai/agents-core': 0.14.3(ws@8.21.3)(zod@4.4.3)
       '@types/ws': 8.18.1
       debug: 4.4.3
-      ws: 8.21.1
+      ws: 8.21.3
       zod: 4.4.3
     transitivePeerDependencies:
       - '@aws-sdk/credential-provider-node'
@@ -2676,13 +2691,13 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@openai/agents@0.14.1(ws@8.21.1)(zod@4.4.3)':
+  '@openai/agents@0.14.3(ws@8.21.3)(zod@4.4.3)':
     dependencies:
-      '@openai/agents-core': 0.14.1(ws@8.21.1)(zod@4.4.3)
-      '@openai/agents-openai': 0.14.1(ws@8.21.1)(zod@4.4.3)
-      '@openai/agents-realtime': 0.14.1(zod@4.4.3)
+      '@openai/agents-core': 0.14.3(ws@8.21.3)(zod@4.4.3)
+      '@openai/agents-openai': 0.14.3(ws@8.21.3)(zod@4.4.3)
+      '@openai/agents-realtime': 0.14.3(zod@4.4.3)
       debug: 4.4.3
-      openai: 6.49.0(ws@8.21.1)(zod@4.4.3)
+      openai: 6.49.0(ws@8.21.3)(zod@4.4.3)
       zod: 4.4.3
     transitivePeerDependencies:
       - '@aws-sdk/credential-provider-node'
@@ -2932,11 +2947,15 @@ snapshots:
     dependencies:
       undici-types: 8.3.0
 
+  '@types/node@26.2.0':
+    dependencies:
+      undici-types: 8.3.0
+
   '@types/unist@3.0.3': {}
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 26.2.0
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -3000,9 +3019,9 @@ snapshots:
 
   '@ungap/structured-clone@1.3.3': {}
 
-  '@vitejs/plugin-basic-ssl@2.3.0(vite@8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0))':
+  '@vitejs/plugin-basic-ssl@2.3.0(vite@8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0))':
     dependencies:
-      vite: 8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0)
+      vite: 8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0)
 
   accepts@2.0.0:
     dependencies:
@@ -3021,7 +3040,7 @@ snapshots:
   ajv@8.20.0:
     dependencies:
       fast-deep-equal: 3.1.3
-      fast-uri: 3.1.4
+      fast-uri: 3.1.5
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
     optional: true
@@ -3090,7 +3109,7 @@ snapshots:
       unifont: 0.7.4
       unstorage: 1.17.5
       vite: 8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0)
-      vitefu: 1.1.3(vite@8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0))
+      vitefu: 1.1.3(vite@8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.4.3
@@ -3363,19 +3382,19 @@ snapshots:
 
   eventemitter3@5.0.4: {}
 
-  eventsource-parser@3.1.0:
+  eventsource-parser@3.1.1:
     optional: true
 
   eventsource@3.0.7:
     dependencies:
-      eventsource-parser: 3.1.0
+      eventsource-parser: 3.1.1
     optional: true
 
-  express-rate-limit@8.6.1(express@5.2.1):
+  express-rate-limit@8.6.2(express@5.2.1):
     dependencies:
       debug: 4.4.3
       express: 5.2.1
-      ip-address: 10.3.1
+      ip-address: 10.5.0
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -3425,7 +3444,7 @@ snapshots:
     dependencies:
       fast-string-truncated-width: 3.0.3
 
-  fast-uri@3.1.4:
+  fast-uri@3.1.5:
     optional: true
 
   fast-wrap-ansi@0.2.2:
@@ -3573,7 +3592,7 @@ snapshots:
       property-information: 7.2.0
       space-separated-tokens: 2.0.2
 
-  hono@4.12.32:
+  hono@4.13.1:
     optional: true
 
   html-escaper@3.0.3: {}
@@ -3599,7 +3618,7 @@ snapshots:
   inherits@2.0.4:
     optional: true
 
-  ip-address@10.3.1:
+  ip-address@10.5.0:
     optional: true
 
   ipaddr.js@1.9.1:
@@ -3817,9 +3836,9 @@ snapshots:
       platform: 1.3.6
       protobufjs: 7.6.5
 
-  openai@6.49.0(ws@8.21.1)(zod@4.4.3):
+  openai@6.49.0(ws@8.21.3)(zod@4.4.3):
     optionalDependencies:
-      ws: 8.21.1
+      ws: 8.21.3
       zod: 4.4.3
 
   p-limit@7.3.1:
@@ -4326,9 +4345,22 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.49.0
 
-  vitefu@1.1.3(vite@8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0)):
+  vite@8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0):
+    dependencies:
+      lightningcss: 1.33.0
+      picomatch: 4.0.5
+      postcss: 8.5.25
+      rolldown: 1.1.5
+      tinyglobby: 0.2.17
     optionalDependencies:
-      vite: 8.1.1(@types/node@26.1.2)(esbuild@0.28.1)(terser@5.49.0)
+      '@types/node': 26.2.0
+      esbuild: 0.28.1
+      fsevents: 2.3.3
+      terser: 5.49.0
+
+  vitefu@1.1.3(vite@8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0)):
+    optionalDependencies:
+      vite: 8.1.1(@types/node@26.2.0)(esbuild@0.28.1)(terser@5.49.0)
 
   web-namespaces@2.0.1: {}
 
@@ -4341,6 +4373,8 @@ snapshots:
     optional: true
 
   ws@8.21.1: {}
+
+  ws@8.21.3: {}
 
   xxhash-wasm@1.1.0: {}
 
